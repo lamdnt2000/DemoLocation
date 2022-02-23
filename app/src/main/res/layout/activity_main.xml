@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Location-Based Services "
+        android:gravity="center"
+        android:textStyle="bold" />
+    <Button
+        android:id="@+id/btGoogleMap"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Open Google Maps"
+        android:gravity="center"
+        android:onClick="clickToOpenMap" />
+    <Button
+        android:id="@+id/btLocation"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Get Location Data"
+        android:gravity="center"
+        android:onClick="clickToGetLocation" />
+
+</LinearLayout>
