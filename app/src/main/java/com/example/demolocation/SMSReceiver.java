@@ -15,16 +15,18 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+import android.util.Log;
 
 public class SMSReceiver extends BroadcastReceiver {
     private String senderTel;
     private LocationManager manager;
     private LocationListener listener;
-
+    private String SMS_RECEIVED = "SMS_RECEIVED_ACTION";
     private class MyLocationListener implements LocationListener {
         @Override
         public void onLocationChanged(Location location) {
             if (location != null) {
+                Log.d("l", String.valueOf(location.getLatitude()));
                 SmsManager sms = SmsManager.getDefault();
                 sms.sendTextMessage(senderTel, null,
                         "http://maps.google.com/maps?q=" +
@@ -53,13 +55,16 @@ public class SMSReceiver extends BroadcastReceiver {
                 }
                 str += msgs[i].getMessageBody().toString();
             }
+            Log.d("msg",str);
             if (str.startsWith("Where are you?")) {
+
                 manager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
                 listener = new MyLocationListener();
 
                 manager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 60000, 1000, listener);
                 this.abortBroadcast();
             }
+
         }
     }
 }

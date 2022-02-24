@@ -4,17 +4,17 @@
     <item
         android:id="@+id/menu_showtraffic"
         android:orderInCategory="100"
-        android:shoWASAction="never"
+        app:showAsAction="never"
         android:title="Show Traffic"/>
     <item
         android:id="@+id/menu_zoomin"
         android:orderInCategory="100"
-        android:showASAction="never"
+        app:showAsAction="never"
         android:title="Zoom In"/>
     <item
         android:id="@+id/menu_zoomout"
         android:orderInCategory="100"
-        android:shoWASAction="never"
+        app:showAsAction="never"
         android:title="Zoom Out"/>
     <item
         android:id="@+id/menu_gotolocation"
@@ -29,16 +29,16 @@
     <item
         android:id="@+id/menu_lineconnecttwopoints"
         android:orderInCategory="100"
-        android:showWASAction="never"
+        app:showAsAction="never"
         android:title="Line connecting 2 points"/>
     <item
         android:id="@+id/menu_getLocationData"
         android:orderInCategory="100"
-        android:shOwASAction="never"
+        app:showAsAction="never"
         android:title="Get Location Data"/>
     <item
         android:id="@+id/menu_getLocationOnTouch"
         android:orderInCategory="100"
-        android:showASAction="never"
+        app:showAsAction="never"
         android:title="Activate the Map Click"/>
 </menu>

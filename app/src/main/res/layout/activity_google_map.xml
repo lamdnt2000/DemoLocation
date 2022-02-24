@@ -17,13 +17,14 @@
         android:ems="10" >
         <requestFocus />
     </EditText>
-    <Button
-        android:id="@+id/btFind"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Find"
-        android:onClick="clickToFind" />
+
+        <Button
+            android:id="@+id/btFind"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="clickToFind"
+            android:text="Find" />
     </LinearLayout>
     <TextView
         android:id="@+id/textView1"
@@ -31,11 +32,14 @@
         android:layout_height="wrap_content"
         android:text="Google Map"
         android:gravity="center" />
-    <fragment
+
+    <com.mapbox.mapboxsdk.maps.MapView xmlns:mapbox="http://schemas.android.com/apk/res-auto"
         android:id="@+id/map"
         android:layout_width="match_parent"
-        android:layout_height="350dp"
-        class="com.google.android.gms.maps.MapFragment"/>
+        android:layout_height="500dp"
+        mapbox:mapbox_cameraZoom="9.0"
+        />
+
     <Button
         android:id="@+id/btStyle"
         android:layout_width="fill_parent"

@@ -1,10 +1,6 @@
 package com.example.demolocation;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.app.Dialog;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
@@ -23,29 +19,29 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.annotations.IconFactory;
+import com.mapbox.mapboxsdk.annotations.MarkerOptions;
+import com.mapbox.mapboxsdk.annotations.PolylineOptions;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
+import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
+import com.mapbox.mapboxsdk.geometry.LatLng;
+import com.mapbox.mapboxsdk.maps.MapView;
+import com.mapbox.mapboxsdk.maps.MapboxMap;
+import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
+import com.mapbox.mapboxsdk.maps.Style;
 
 import java.io.IOException;
 import java.util.List;
 
-public class GoogleMapActivity extends Activity {
-    private GoogleMap map;
+public class GoogleMapActivity extends AppCompatActivity  {
+    private MapboxMap mapboxMap;
+    private MapView mapView;
     private Button btStyle;
     private int state;
-    private LocationClient locationClient;
-    private GoogleApiClient mGoogleApiClient;
     private Location currentLocation;
     private static final LatLng BEN_THANH_MARKET = new LatLng(10.7731, 106.6983);
     private static final LatLng SAIGON_OPERA_HOUSE = new LatLng(10.7767,
@@ -54,87 +50,101 @@ public class GoogleMapActivity extends Activity {
     private LocationListener locationListener;
     private LatLng p;
     private int status;
-
+    private final String accessToken = "pk.eyJ1IjoiaDNuenkiLCJhIjoiY2wwMHBjOWltMGIwdjNpcWdtbnE3amd6eSJ9.WW_dkTFiWwgINaBrRWHlZg";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Mapbox.getInstance(this,accessToken);
         setContentView(R.layout.activity_google_map);
-        state = 0;
-        status = 0;
-        map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
+
+        mapView = findViewById(R.id.map);
+        mapView.onCreate(savedInstanceState);
+        mapView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(@NonNull MapboxMap mapboxMap) {
+                GoogleMapActivity.this.mapboxMap = mapboxMap;
+                mapboxMap.setStyle(Style.MAPBOX_STREETS, new Style.OnStyleLoaded() {
+                    @SuppressLint("MissingPermission")
+                    @Override
+                    public void onStyleLoaded(@NonNull Style style) {
+
+                        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+                        List<String> pr = locationManager.getProviders(true);
+                        currentLocation = null;
+                        for (int i = 0; i < pr.size(); i++) {
+                            currentLocation = locationManager.getLastKnownLocation(pr.get(i));
+                            if (currentLocation != null) {
+                                Log.d("bbb", currentLocation.getLatitude() + "");
+                                break;
+                            }
+                        }
+                        if (currentLocation!=null) {
+                            LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+                            mapboxMap.addMarker(new com.mapbox.mapboxsdk.annotations.MarkerOptions().position(latLng)
+                                    .title("My position")
+                                    .snippet("Mobile Programming")
+                                    .icon(IconFactory.getInstance(getBaseContext()).fromResource(R.drawable.ic_location)));
+
+                            mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,45));
+
+                            mapboxMap.animateCamera(CameraUpdateFactory.zoomTo(10),2000,null);
+                        }
+
+                    }
+                });
+            }
+        });
         btStyle = (Button) findViewById(R.id.btStyle);
-        map.getUiSettings().setCompassEnabled(true);
-        int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-        if (status != ConnectionResult.SUCCESS) {
-            int requestCode = 10;
-            Dialog dialog = GooglePlayServicesUtil.getErrorDialog(status, this,
-                    requestCode);
-            dialog.show();
-        } else {
-            map.setMyLocationEnabled(true);
-            locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-            List<String> pr = locationManager.getProviders(true);
-            currentLocation = null;
-            for (int i = 0; i < pr.size(); i++) {
-                currentLocation = locationManager.getLastKnownLocation(pr.get(i));
-                if (currentLocation != null) {
-                    Log.d("bbb", currentLocation.getLatitude() + "");
-                    break;
-                }
-            }
-            if (currentLocation != null)
-            {
-                LatLng currentPos = new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude());
-            }
-            Log.d("aaa", "bbb");
-            Marker currentMarker = map.addMarker(new MarkerOptions().position(currentPos)
-                    .title("My Position")
-                    .snippet("Mobile Programming")
-                    .icon(BitmapDescriptorFactory
-                            .fromResource(R.drawable.ic_Launcher)));
-            map.moveCamera(CameraUpdateFactory
-                    .newLatLngZoom(currentPos, 15));
-            map.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
-        }
+
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mapView.onSaveInstanceState(outState);
+    }
     public void clickToChangeStyle(View view) {
         String title = "";
         switch (state) {
             case 0:
-                map.setMapType (GoogleMap.MAP_TYPE_NORMAL);
+                mapboxMap.setStyle(Style.TRAFFIC_NIGHT);
                 title = "Normal - Change to Hybrid";
                 state = 1;
                 break;
             case 1:
-                map.setMapType (GoogleMap.MAP_TYPE_HYBRID);
+                mapboxMap.setStyle(Style.SATELLITE);
                 title = "Hybrid - Change to Satellite";
                 state = 2;
                 break;
             case 2:
-                map.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+                mapboxMap.setStyle(Style.SATELLITE_STREETS);
                 title = "Satellite - Change to None";
                 state = 3;
                 break;
             case 3:
-                map.setMapType (GoogleMap.MAP_TYPE_TERRAIN);
+                mapboxMap.setStyle(Style.LIGHT);
                 title = "Terrain - Change to None";
                 state = 4;
                 break;
             case 4:
-                map.setMapType(GoogleMap.MAP_TYPE_NONE);
+                mapboxMap.setStyle(Style.TRAFFIC_DAY);
                 title = "None - Change to Normal";
                 state = 0;
                 break;
         }
         btStyle.setText(title);
     }
-    private class MyOnMapClicklistener implements GoogleMap.OnMapClickListener {
+
+
+
+
+    private class MyOnMapClicklistener implements MapboxMap.OnMapClickListener {
         @Override
-        public void onMapClick(LatLng pos) {
+        public boolean onMapClick(@NonNull LatLng point) {
             Toast.makeText(getBaseContext(), "Postion: " +
-                            pos.latitude + ":" + pos.longitude,
+                            point.getLatitude() + ":" + point.getLongitude(),
                     Toast.LENGTH_SHORT).show();
+            return true;
         }
     }
     private class MyLocationListener implements LocationListener {
@@ -148,11 +158,10 @@ public class GoogleMapActivity extends Activity {
                                 + location.getLongitude(), Toast.LENGTH_SHORT)
                         .show();
                 p = new LatLng(location.getLatitude(), location.getLongitude());
-                map.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+                mapboxMap.addOnCameraMoveListener(new MapboxMap.OnCameraMoveListener() {
                     @Override
-                    public void onCameraChange (CameraPosition arge){
-                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(p,
-                                18));
+                    public void onCameraMove() {
+                        mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(p,18));
                     }
                 });
             }
@@ -193,45 +202,60 @@ public class GoogleMapActivity extends Activity {
         return true;
     }
 
+    @SuppressLint("MissingPermission")
     @Override
     public boolean onOptionsItemSelected (MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_showtraffic:
-                map.setTrafficEnabled(true);
+                mapboxMap.setStyle(Style.TRAFFIC_DAY);
                 break;
             case R.id.menu_zoomin:
-                map.animateCamera(CameraUpdateFactory.zoomIn());
+
+                mapboxMap.animateCamera(CameraUpdateFactory.zoomIn());
                 break;
             case R.id.menu_zoomout:
-                map.animateCamera(CameraUpdateFactory.zoomOut());
+                mapboxMap.animateCamera(CameraUpdateFactory.zoomOut());
                 break;
             case R.id.menu_gotolocation:
                 CameraPosition cameraPos = new CameraPosition.Builder()
                         .target(BEN_THANH_MARKET).zoom(17).bearing(90).tilt(30)
                         .build();
-                map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPos));
-                map.addMarker(new MarkerOptions()
+                mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPos));
+                mapboxMap.addMarker(new com.mapbox.mapboxsdk.annotations.MarkerOptions()
                         .position(BEN_THANH_MARKET)
                         .title("Ben Thanh Market")
                         .snippet("HCM City")
-                        .icon(BitmapDescriptorFactory
-                                .fromResource(R.drawable.ic_launcher)));
+                        .icon(IconFactory.getInstance(getBaseContext()).fromResource(R.drawable.ic_location)));
                 break;
             case R.id.menu_showcurrentlocation:
-                currentLocation = map.getMyLocation();
-                LatLng currentPos = new LatLng(currentLocation.getLatitude(),
-                        currentLocation.getLongitude());
-                CameraPosition myPosition = new CameraPosition.Builder()
-                        .target(currentPos).zoom(17).bearing(90).tilt(30).build();
-                map.animateCamera(CameraUpdateFactory.newCameraPosition(myPosition));
+                locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+                List<String> pr = locationManager.getProviders(true);
+                currentLocation = null;
+                for (int i = 0; i < pr.size(); i++) {
+                    currentLocation = locationManager.getLastKnownLocation(pr.get(i));
+                    if (currentLocation != null) {
+                        Log.d("bbb", currentLocation.getLatitude() + "");
+                        break;
+                    }
+                }
+                if (currentLocation!=null) {
+                    LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+                    mapboxMap.addMarker(new com.mapbox.mapboxsdk.annotations.MarkerOptions().position(latLng)
+                            .title("My position")
+                            .snippet("Mobile Programming")
+                            .icon(IconFactory.getInstance(getBaseContext()).fromResource(R.drawable.ic_location)));
+
+                    mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,45));
+
+                    mapboxMap.animateCamera(CameraUpdateFactory.zoomTo(10),2000,null);
+                }
                 break;
             case R.id.menu_lineconnecttwopoints:
-                map.addMarker(new MarkerOptions().position(SAIGON_OPERA_HOUSE)
+                mapboxMap.addMarker(new com.mapbox.mapboxsdk.annotations.MarkerOptions().position(SAIGON_OPERA_HOUSE)
                         .title("Saigon Opera House")
                         .snippet("HCM City")
-                        .icon(BitmapDescriptorFactory
-                                .defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-                map.addPolyline(new PolylineOptions()
+                        .icon(IconFactory.getInstance(getBaseContext()).fromResource(R.drawable.ic_minion)));
+                mapboxMap.addPolyline(new PolylineOptions()
                         .add(BEN_THANH_MARKET, SAIGON_OPERA_HOUSE).width(5)
                         .color(Color.RED));
                 break;
@@ -239,7 +263,7 @@ public class GoogleMapActivity extends Activity {
                 locationListener = new MyLocationListener();
                 status = 1;
             case R.id.menu_getLocationOnTouch:
-                map.setOnMapClickListener(new MyOnMapClicklistener());
+                mapboxMap.addOnMapClickListener(new MyOnMapClicklistener());
                 break;
         }
         return true;
@@ -269,6 +293,8 @@ public class GoogleMapActivity extends Activity {
         }
     }
     private class GeocoderTask extends AsyncTask<String, Void, List<Address>> {
+
+
         @Override
         protected List<Address> doInBackground(String... locationName) {
             Geocoder geo = new Geocoder(getBaseContext());
@@ -288,19 +314,19 @@ public class GoogleMapActivity extends Activity {
                         Toast.LENGTH_SHORT).show();
                 return;
             }
-            map.clear();
+            mapboxMap.clear();
             for (int i = 0; i < result.size(); i++) {
                 Address address = (Address) result.get(i);
                 LatLng findPos = new LatLng(address.getLatitude(), address.getLongitude());
                 String addressText = String.format("%s %s",
-                        address.getMaxAddressLineIndex() > 0 ? address.getAddressLine(0) : ""
+                        address.getMaxAddressLineIndex() > 0 ? address.getAddressLine(0) : "",
                         address.getCountryName());
-                MarkerOptions mo = new MarkerOptions();
+                com.mapbox.mapboxsdk.annotations.MarkerOptions mo = new MarkerOptions();
                 mo.position(findPos);
                 mo.title(addressText);
-                map.addMarker(mo);
+                mapboxMap.addMarker(mo);
                 if (i == 0) {
-                    map.animateCamera(CameraUpdateFactory.newLatLng(findPos));
+                    mapboxMap.animateCamera(CameraUpdateFactory.newLatLng(findPos));
                 }
             }
         }

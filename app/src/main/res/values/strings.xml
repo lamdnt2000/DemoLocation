@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">DemoLocation</string>
+    <string name="mapbox_access_token">pk.eyJ1IjoiaDNuenkiLCJhIjoiY2wwMHBjOWltMGIwdjNpcWdtbnE3amd6eSJ9.WW_dkTFiWwgINaBrRWHlZg</string>
 </resources>
